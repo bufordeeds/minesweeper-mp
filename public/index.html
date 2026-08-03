@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minesweeper Together</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💣</text></svg>" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="join" class="overlay">
+    <div class="panel">
+      <h1>💣 Minesweeper Together</h1>
+      <p id="join-sub">Co-op minesweeper — clear the board with friends.</p>
+      <input id="name-input" maxlength="20" placeholder="Your name" autocomplete="off" />
+      <button id="join-btn">Play</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">💣 <span>Minesweeper Together</span></div>
+    <div class="controls">
+      <span id="mines-left" title="Mines remaining">💣 --</span>
+      <select id="difficulty">
+        <option value="beginner">Beginner 9×9</option>
+        <option value="intermediate" selected>Intermediate 16×16</option>
+        <option value="expert">Expert 30×16</option>
+      </select>
+      <button id="restart">New game</button>
+      <button id="invite">🔗 Copy invite link</button>
+    </div>
+  </header>
+
+  <div id="players"></div>
+  <div id="status"></div>
+
+  <main>
+    <div id="board-wrap">
+      <div id="board"></div>
+      <div id="cursors"></div>
+    </div>
+  </main>
+
+  <script src="/client.js"></script>
+</body>
+</html>

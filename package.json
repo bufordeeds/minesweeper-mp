@@ -1,0 +1,12 @@
+{
+  "name": "minesweeper-mp",
+  "version": "0.1.0",
+  "description": "Co-op multiplayer minesweeper with shareable room links",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

@@ -56,6 +56,7 @@ button, select, input {
 button { cursor: pointer; }
 button:hover { background: var(--cell-hover); }
 #invite.copied { background: #1d4a2c; border-color: #2f7a47; }
+#flag-mode.active { background: #7a2b2b; border-color: #e6494f; box-shadow: 0 0 0 1px #e6494f55; }
 
 #players {
   display: flex;
@@ -99,25 +100,30 @@ main {
 #board-wrap { position: relative; }
 
 #board {
+  --cols: 16;
+  --size: clamp(19px, calc((100vw - 44px) / var(--cols)), 30px);
   display: grid;
+  grid-template-columns: repeat(var(--cols), var(--size));
   gap: 2px;
   background: var(--border);
   padding: 2px;
   border-radius: 8px;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   touch-action: manipulation;
 }
 
 .cell {
-  width: 30px;
-  height: 30px;
+  width: var(--size);
+  height: var(--size);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--cell);
   border-radius: 3px;
   font-weight: 700;
-  font-size: 15px;
+  font-size: calc(var(--size) * 0.52);
   cursor: pointer;
   font-variant-numeric: tabular-nums;
 }
@@ -127,7 +133,7 @@ main {
 .cell.open.tinted { box-shadow: inset 0 0 0 30px var(--tint); }
 .cell.mine { background: #3d1d22; }
 .cell.exploded { background: #b91c1c; }
-.cell.flag { font-size: 14px; }
+.cell.flag { font-size: calc(var(--size) * 0.48); }
 
 .n1 { color: #60a5fa; }
 .n2 { color: #4ade80; }
@@ -179,3 +185,27 @@ main {
 .panel p { color: var(--muted); font-size: 14px; }
 .panel button { background: var(--accent); border-color: var(--accent); font-weight: 600; }
 .panel button:hover { filter: brightness(1.1); }
+.panel input { font-size: 16px; } /* ≥16px stops iOS zooming the page on focus */
+
+.help-panel {
+  width: min(92vw, 460px);
+  text-align: left;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.help-panel h1 { text-align: center; }
+.help-body { display: flex; flex-direction: column; gap: 10px; }
+.help-body h2 { font-size: 15px; margin-top: 4px; }
+.help-body p, .help-body li { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.help-body strong { color: var(--text); }
+.help-body ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+@media (max-width: 600px) {
+  header { padding: 8px 10px; gap: 6px; }
+  .brand { font-size: 15px; }
+  .controls { gap: 5px; }
+  button, select { padding: 6px 9px; font-size: 13px; }
+  #players { padding: 8px 10px 0; }
+  #status { padding: 6px 10px; font-size: 14px; }
+  main { padding: 8px 6px 24px; }
+}

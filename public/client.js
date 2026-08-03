@@ -36,6 +36,10 @@ const els = {
   difficulty: document.getElementById('difficulty'),
   restart: document.getElementById('restart'),
   invite: document.getElementById('invite'),
+  flagMode: document.getElementById('flag-mode'),
+  help: document.getElementById('help'),
+  helpBtn: document.getElementById('help-btn'),
+  helpClose: document.getElementById('help-close'),
 };
 
 els.joinSub.textContent = `Room ${roomCode} — clear the board together.`;
@@ -123,7 +127,7 @@ function buildGrid() {
   const key = `${state.w}x${state.h}`;
   if (builtFor === key) return;
   builtFor = key;
-  els.board.style.gridTemplateColumns = `repeat(${state.w}, 30px)`;
+  els.board.style.setProperty('--cols', state.w);
   els.board.innerHTML = '';
   cellEls = [];
   for (let i = 0; i < state.w * state.h; i++) {
@@ -221,11 +225,18 @@ function escapeHtml(s) {
 // Input
 // ---------------------------------------------------------------------------
 
+let flagMode = false;
+
 els.board.addEventListener('click', (e) => {
+  if (suppressClick) {
+    suppressClick = false;
+    return;
+  }
   const i = cellIndex(e);
   if (i === null) return;
   const revealed = state && state.cells.some(([ci]) => ci === i);
-  send({ t: revealed ? 'chord' : 'reveal', i });
+  if (revealed) send({ t: 'chord', i });
+  else send({ t: flagMode ? 'flag' : 'reveal', i });
 });
 
 els.board.addEventListener('contextmenu', (e) => {
@@ -234,18 +245,29 @@ els.board.addEventListener('contextmenu', (e) => {
   if (i !== null) send({ t: 'flag', i });
 });
 
-// Long-press to flag on touch devices
+// Long-press to flag on touch devices. After a long-press fires, the browser
+// still dispatches a click on touchend — suppress it or the flag gets revealed.
 let pressTimer = null;
+let suppressClick = false;
 els.board.addEventListener('touchstart', (e) => {
   const i = cellIndex(e);
   if (i === null) return;
   pressTimer = setTimeout(() => {
     pressTimer = null;
+    suppressClick = true;
     send({ t: 'flag', i });
   }, 450);
 });
 els.board.addEventListener('touchend', () => clearTimeout(pressTimer));
-els.board.addEventListener('touchmove', () => clearTimeout(pressTimer));
+els.board.addEventListener('touchmove', () => {
+  clearTimeout(pressTimer);
+  suppressClick = false;
+});
+
+els.flagMode.addEventListener('click', () => {
+  flagMode = !flagMode;
+  els.flagMode.classList.toggle('active', flagMode);
+});
 
 function cellIndex(e) {
   const target = (e.touches ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY) : e.target);
@@ -269,6 +291,12 @@ els.invite.addEventListener('click', async () => {
     els.invite.textContent = '🔗 Copy invite link';
     els.invite.classList.remove('copied');
   }, 1500);
+});
+
+els.helpBtn.addEventListener('click', () => els.help.classList.remove('hidden'));
+els.helpClose.addEventListener('click', () => els.help.classList.add('hidden'));
+els.help.addEventListener('click', (e) => {
+  if (e.target === els.help) els.help.classList.add('hidden');
 });
 
 // ---------------------------------------------------------------------------

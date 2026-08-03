@@ -26,8 +26,10 @@
         <option value="intermediate" selected>Intermediate 16×16</option>
         <option value="expert">Expert 30×16</option>
       </select>
+      <button id="flag-mode" title="Flag mode: taps place flags">🚩</button>
       <button id="restart">New game</button>
       <button id="invite">🔗 Copy invite link</button>
+      <button id="help-btn" title="How to play">❓</button>
     </div>
   </header>
 
@@ -40,6 +42,28 @@
       <div id="cursors"></div>
     </div>
   </main>
+
+  <div id="help" class="overlay hidden">
+    <div class="panel help-panel">
+      <h1>How to play</h1>
+      <div class="help-body">
+        <p><strong>Goal:</strong> together, reveal every square that isn't a mine. Numbers show how many mines touch that square. If anyone reveals a mine, the round is over for everyone — you win and lose as a team.</p>
+        <h2>Controls</h2>
+        <ul>
+          <li><strong>Reveal</strong> — tap / left-click a square</li>
+          <li><strong>Flag a mine</strong> — long-press on touch, right-click with a mouse, or toggle 🚩 flag mode so every tap flags</li>
+          <li><strong>Chord</strong> — tap a number that already has the right count of flags around it to reveal its remaining neighbors at once</li>
+        </ul>
+        <h2>Multiplayer</h2>
+        <ul>
+          <li>Everyone in the room shares one board — squares are tinted with the color of whoever revealed them, and you score a point per square.</li>
+          <li>Your first click of a fresh board is always safe.</li>
+          <li>Invite friends with 🔗 — anyone with the link joins your room.</li>
+        </ul>
+      </div>
+      <button id="help-close">Got it</button>
+    </div>
+  </div>
 
   <script src="/client.js"></script>
 </body>

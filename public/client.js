@@ -40,6 +40,12 @@ const els = {
   help: document.getElementById('help'),
   helpBtn: document.getElementById('help-btn'),
   helpClose: document.getElementById('help-close'),
+  gameover: document.getElementById('gameover'),
+  goTitle: document.getElementById('go-title'),
+  goSub: document.getElementById('go-sub'),
+  goScores: document.getElementById('go-scores'),
+  goAgain: document.getElementById('go-again'),
+  confetti: document.getElementById('confetti'),
 };
 
 els.joinSub.textContent = `Room ${roomCode} — clear the board together.`;
@@ -68,8 +74,14 @@ function connect() {
     if (msg.t === 'welcome') {
       myId = msg.id;
     } else if (msg.t === 'state') {
+      const prevStatus = state ? state.status : null;
       state = msg;
       render();
+      if (msg.status !== prevStatus) {
+        if (msg.status === 'won') showGameOver(true);
+        else if (msg.status === 'lost') showGameOver(false);
+        else hideGameOver();
+      }
     } else if (msg.t === 'cursor') {
       moveCursor(msg.id, msg.fx, msg.fy);
     } else if (msg.t === 'left') {
@@ -292,6 +304,95 @@ els.invite.addEventListener('click', async () => {
     els.invite.classList.remove('copied');
   }, 1500);
 });
+
+// ---------------------------------------------------------------------------
+// Game-over modal + confetti
+// ---------------------------------------------------------------------------
+
+function showGameOver(won) {
+  if (won) {
+    els.goTitle.textContent = '🎉 Board cleared!';
+    els.goSub.textContent = 'Every safe square swept. Nice teamwork.';
+  } else {
+    els.goTitle.textContent = '💥 Boom.';
+    const culprit = state.cells.find(([i]) => i === state.exploded);
+    const p = culprit && state.players.find((pl) => pl.id === culprit[2]);
+    els.goSub.textContent = `${p ? p.name : 'Someone'} hit a mine.`;
+  }
+  els.goScores.innerHTML = '';
+  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  sorted.forEach((p, idx) => {
+    const row = document.createElement('div');
+    row.className = 'go-row' + (idx === 0 && sorted.length > 1 && p.score > 0 ? ' top' : '');
+    row.innerHTML = `<span class="dot" style="background:${p.color}"></span><span class="name">${escapeHtml(p.name)}${p.id === myId ? ' (you)' : ''}</span><span class="pts">${p.score}</span>`;
+    els.goScores.appendChild(row);
+  });
+  els.gameover.classList.remove('hidden');
+  if (won) launchConfetti();
+}
+
+function hideGameOver() {
+  els.gameover.classList.add('hidden');
+}
+
+els.goAgain.addEventListener('click', () => {
+  hideGameOver();
+  send({ t: 'restart', difficulty: els.difficulty.value });
+});
+els.gameover.addEventListener('click', (e) => {
+  if (e.target === els.gameover) hideGameOver(); // dismiss to look at the board
+});
+
+let confettiTimer = null;
+function launchConfetti() {
+  const canvas = els.confetti;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = innerWidth * dpr;
+  canvas.height = innerHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.style.display = 'block';
+  if (confettiTimer) clearInterval(confettiTimer);
+
+  const palette = ['#e6494f', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899', '#14b8a6', '#f97316', '#facc15'];
+  const parts = Array.from({ length: 160 }, () => ({
+    x: Math.random() * innerWidth,
+    y: -20 - Math.random() * innerHeight * 0.5,
+    w: 6 + Math.random() * 6,
+    h: 4 + Math.random() * 4,
+    vx: (Math.random() - 0.5) * 2.4,
+    vy: 2 + Math.random() * 3,
+    rot: Math.random() * Math.PI,
+    vr: (Math.random() - 0.5) * 0.25,
+    color: palette[(Math.random() * palette.length) | 0],
+  }));
+  const start = performance.now();
+
+  // setInterval rather than requestAnimationFrame: rAF is suppressed in
+  // backgrounded/embedded tabs, which left the canvas stuck visible-but-blank
+  confettiTimer = setInterval(() => {
+    const now = performance.now();
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    let alive = false;
+    for (const p of parts) {
+      p.x += p.vx + Math.sin(now / 300 + p.rot) * 0.6;
+      p.y += p.vy;
+      p.rot += p.vr;
+      if (p.y < innerHeight + 20) alive = true;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    if (!alive || now - start > 6000) {
+      canvas.style.display = 'none';
+      clearInterval(confettiTimer);
+      confettiTimer = null;
+    }
+  }, 16);
+}
 
 els.helpBtn.addEventListener('click', () => els.help.classList.remove('hidden'));
 els.helpClose.addEventListener('click', () => els.help.classList.add('hidden'));

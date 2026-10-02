@@ -1,0 +1,9 @@
+[Unit]
+Description=Poll origin/main for minesweeper deploys every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Syntax + boot smoke test + image build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Syntax check
+        run: |
+          node --check server.js
+          for f in public/*.js; do node --check "$f"; done
+      - name: Boot smoke test
+        run: |
+          PORT=3456 node server.js &
+          for i in $(seq 1 20); do
+            curl -fsS -o /dev/null http://localhost:3456/ && exit 0
+            sleep 0.5
+          done
+          echo "server never answered on :3456" >&2; exit 1
+      - name: Docker build
+        run: docker build -t minesweeper-mp:ci .

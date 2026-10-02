@@ -1,0 +1,8 @@
+[Unit]
+Description=Minesweeper pull-based deploy
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+User=buford
+ExecStart=/home/buford/apps/minesweeper-mp/deploy/pull-deploy.sh
